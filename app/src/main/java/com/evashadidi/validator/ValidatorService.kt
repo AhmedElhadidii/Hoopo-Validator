@@ -18,6 +18,8 @@ import androidx.work.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import android.net.ConnectivityManager
+import android.app.PendingIntent
+import android.app.AlarmManager
 
 import java.util.concurrent.TimeUnit
 //old import android.net.TetheringManager
@@ -92,19 +94,25 @@ class ValidatorService : Service() {
             .setContentTitle("Validator Service")
             .setContentText("Monitoring device events")
             .setSmallIcon(R.drawable.ic_validator_logo_foreground) // Ensure you have this icon
+            .setPriority(NotificationCompat.PRIORITY_LOW) // Set priority
             .build()
         startForeground(SERVICE_NOTIFICATION_ID, notification)
 
+        Log.d("ValidatorService", "Service started and notification displayed")
         initializeEventListeners()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // Service is already running
+        Log.d("ValidatorService", "Service onStartCommand called")
+
         return START_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        Log.d("ValidatorService", "Service destroyed")
+
         unregisterReceiver(simStateReceiver)
         unregisterReceiver(wifiStateReceiver)
         unregisterReceiver(usbDeviceReceiver)
@@ -124,7 +132,7 @@ class ValidatorService : Service() {
                 NotificationManager.IMPORTANCE_LOW
             )
             val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(serviceChannel)
+            manager?.createNotificationChannel(serviceChannel)
         }
     }
 
@@ -157,10 +165,10 @@ class ValidatorService : Service() {
                 if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
                     if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
                         Log.d("ValidatorApp", "Wi-Fi connected (possibly hotspot)")
-                        NetworkUtils.sendPostRequest("Wi-Fi connected (possibly hotspot)")
+                        NetworkUtils.sendPostRequest(this@ValidatorService, "Wi-Fi connected (possibly hotspot)")
                     } else {
                         Log.d("ValidatorApp", "Wi-Fi disconnected (possibly hotspot turned off)")
-                        NetworkUtils.sendPostRequest("Wi-Fi disconnected (possibly hotspot turned off)")
+                        NetworkUtils.sendPostRequest(this@ValidatorService, "Wi-Fi disconnected (possibly hotspot turned off)")
                     }
                 }
                 // Add more checks if needed
@@ -169,13 +177,13 @@ class ValidatorService : Service() {
             override fun onLost(network: Network) {
                 super.onLost(network)
                 Log.d("ValidatorApp", "Network lost")
-                NetworkUtils.sendPostRequest("Network lost")
+                NetworkUtils.sendPostRequest(this@ValidatorService, "Network lost")
             }
 
             override fun onAvailable(network: Network) {
                 super.onAvailable(network)
                 Log.d("ValidatorApp", "Network available")
-                NetworkUtils.sendPostRequest("Network available")
+                NetworkUtils.sendPostRequest(this@ValidatorService, "Network available")
             }
         }
 
@@ -200,20 +208,22 @@ class ValidatorService : Service() {
     private fun checkAppInstallation() {
         val isInstalled = AppChecker.isAppInstalled(this, "im.evas.app")
         if (isInstalled) {
-            NetworkUtils.sendPostRequest("Hoopo app is installed")
+            NetworkUtils.sendPostRequest(this, "Hoopo app is installed")
         } else {
-            NetworkUtils.sendPostRequest("Hoopo app is not installed")
+            NetworkUtils.sendPostRequest(this, "Hoopo app is not installed")
         }
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         val restartServiceIntent = Intent(applicationContext, this::class.java)
         restartServiceIntent.setPackage(packageName)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(restartServiceIntent)
-        } else {
-            startService(restartServiceIntent)
-        }
+        val pendingIntent = PendingIntent.getService(
+            applicationContext, 1, restartServiceIntent, PendingIntent.FLAG_IMMUTABLE
+        )
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 1000, pendingIntent
+        )
         super.onTaskRemoved(rootIntent)
     }
 }

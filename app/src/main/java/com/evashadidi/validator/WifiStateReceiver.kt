@@ -15,11 +15,11 @@ class WifiStateReceiver : BroadcastReceiver() {
             when (wifiState) {
                 WifiManager.WIFI_STATE_ENABLED -> {
                     Log.d("ValidatorApp", "Wi-Fi is enabled")
-                    NetworkUtils.sendPostRequest("Wi-Fi enabled")
+                    NetworkUtils.sendPostRequest(context, "Wi-Fi enabled")
                 }
                 WifiManager.WIFI_STATE_DISABLED -> {
                     Log.d("ValidatorApp", "Wi-Fi is disabled")
-                    NetworkUtils.sendPostRequest("Wi-Fi disabled")
+                    NetworkUtils.sendPostRequest(context, "Wi-Fi disabled")
                 }
             }
         }

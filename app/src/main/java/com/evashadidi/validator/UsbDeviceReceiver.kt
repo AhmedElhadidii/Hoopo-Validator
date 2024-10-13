@@ -13,11 +13,11 @@ class UsbDeviceReceiver : BroadcastReceiver() {
         when (intent.action) {
             UsbManager.ACTION_USB_DEVICE_ATTACHED -> {
                 Log.d("ValidatorApp", "USB device connected")
-                NetworkUtils.sendPostRequest("USB device connected")
+                NetworkUtils.sendPostRequest(context,"USB device connected")
             }
             UsbManager.ACTION_USB_DEVICE_DETACHED -> {
                 Log.d("ValidatorApp", "USB device disconnected")
-                NetworkUtils.sendPostRequest("USB device disconnected")
+                NetworkUtils.sendPostRequest(context,"USB device disconnected")
             }
         }
     }

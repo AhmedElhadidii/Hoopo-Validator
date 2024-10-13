@@ -81,13 +81,6 @@ fun HomeScreen() {
                 )
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
-
-            CircularProgressIndicator(
-                color = Color.White,
-                strokeWidth = 3.dp,
-                modifier = Modifier.size(40.dp)
-            )
         }
     }
 }

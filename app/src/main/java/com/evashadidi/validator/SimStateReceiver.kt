@@ -11,7 +11,7 @@ class SimStateReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == "android.intent.action.SIM_STATE_CHANGED") {
             Log.d("ValidatorApp", "SIM state changed")
-            NetworkUtils.sendPostRequest("SIM state changed")
+            NetworkUtils.sendPostRequest(context, "SIM state changed")
         }
     }
 }
