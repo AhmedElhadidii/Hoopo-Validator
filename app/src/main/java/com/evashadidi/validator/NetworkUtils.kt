@@ -1,4 +1,5 @@
 // NetworkUtils.kt
+
 package com.evashadidi.validator
 
 import android.util.Log
@@ -21,7 +22,8 @@ object NetworkUtils {
      * If the request fails, it caches the request for later retry.
      */
     fun sendPostRequest(message: String) {
-        val json = "{ \"event\": \"$message\" }"
+        val timestamp = System.currentTimeMillis()
+        val json = "{ \"event\": \"$message\", \"timestamp\": $timestamp }"
         val body = RequestBody.create(MEDIA_TYPE_JSON, json)
 
         val request = Request.Builder()
@@ -32,9 +34,8 @@ object NetworkUtils {
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e("ValidatorApp", "HTTP Request Failed: ${e.message}")
-                // Insert into cache and enqueue worker
                 ValidatorApp.applicationScope.launch {
-                    insertApiRequest(message)
+                    insertApiRequest(message, timestamp)
                 }
             }
 
@@ -74,14 +75,12 @@ object NetworkUtils {
     /**
      * Inserts a failed API request into the Room database and enqueues a worker to retry.
      */
-    private suspend fun insertApiRequest(message: String) {
-        // Insert the failed request into the database
+    private suspend fun insertApiRequest(message: String, timestamp: Long) {
         val db = AppDatabase.getDatabase(ValidatorApp.context)
         val apiRequestDao = db.apiRequestDao()
-        val apiRequest = ApiRequest(message = message)
+        val apiRequest = ApiRequest(message = message, timestamp = timestamp)
         apiRequestDao.insert(apiRequest)
 
-        // Enqueue the ApiRequestWorker to retry sending
         enqueueApiRequestWorker()
     }
 

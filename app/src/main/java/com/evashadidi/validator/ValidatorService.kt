@@ -91,7 +91,7 @@ class ValidatorService : Service() {
         val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Validator Service")
             .setContentText("Monitoring device events")
-//            .setSmallIcon(R.drawable.ic_validator) // Ensure you have this icon
+            .setSmallIcon(R.drawable.ic_validator_logo_foreground) // Ensure you have this icon
             .build()
         startForeground(SERVICE_NOTIFICATION_ID, notification)
 
@@ -198,7 +198,7 @@ class ValidatorService : Service() {
     }
 
     private fun checkAppInstallation() {
-        val isInstalled = AppChecker.isAppInstalled(this, "com.hadidievas.hoopo")
+        val isInstalled = AppChecker.isAppInstalled(this, "im.evas.app")
         if (isInstalled) {
             NetworkUtils.sendPostRequest("Hoopo app is installed")
         } else {
