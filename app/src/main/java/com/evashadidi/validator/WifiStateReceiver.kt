@@ -1,3 +1,4 @@
+// WifiStateReceiver.kt
 package com.evashadidi.validator
 
 import android.content.BroadcastReceiver
@@ -9,22 +10,16 @@ import android.util.Log
 class WifiStateReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == WifiManager.WIFI_STATE_CHANGED_ACTION) {
+        if (WifiManager.WIFI_STATE_CHANGED_ACTION == intent.action) {
             val wifiState = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN)
             when (wifiState) {
                 WifiManager.WIFI_STATE_ENABLED -> {
-                    Log.d("ValidatorApp", "Wi-Fi Enabled")
-                    NetworkUtils.sendPostRequest("Wi-Fi Enabled")
+                    Log.d("ValidatorApp", "Wi-Fi is enabled")
+                    NetworkUtils.sendPostRequest("Wi-Fi enabled")
                 }
                 WifiManager.WIFI_STATE_DISABLED -> {
-                    Log.d("ValidatorApp", "Wi-Fi Disabled")
-                    NetworkUtils.sendPostRequest("Wi-Fi Disabled")
-                }
-                WifiManager.WIFI_STATE_ENABLING -> {
-                    Log.d("ValidatorApp", "Wi-Fi Enabling")
-                }
-                WifiManager.WIFI_STATE_DISABLING -> {
-                    Log.d("ValidatorApp", "Wi-Fi Disabling")
+                    Log.d("ValidatorApp", "Wi-Fi is disabled")
+                    NetworkUtils.sendPostRequest("Wi-Fi disabled")
                 }
             }
         }

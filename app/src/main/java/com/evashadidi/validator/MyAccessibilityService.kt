@@ -1,3 +1,4 @@
+// MyAccessibilityService.kt
 package com.evashadidi.validator
 
 import android.accessibilityservice.AccessibilityService
@@ -6,14 +7,12 @@ import android.util.Log
 
 class MyAccessibilityService : AccessibilityService() {
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        event?.let {
-            val packageName = it.packageName?.toString() ?: ""
-            val eventType = it.eventType
+    override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            val packageName = event.packageName?.toString() ?: ""
+            val className = event.className?.toString() ?: ""
 
-            Log.d("ValidatorApp", "Event received: $eventType from package: $packageName")
-
-            if (packageName == "com.android.settings" && eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            if (packageName == "com.android.settings") {
                 Log.d("ValidatorApp", "Settings app opened")
                 NetworkUtils.sendPostRequest("Device settings opened")
             }
@@ -21,6 +20,6 @@ class MyAccessibilityService : AccessibilityService() {
     }
 
     override fun onInterrupt() {
-        // Handle interrupt
+        // Handle interrupt if necessary
     }
 }

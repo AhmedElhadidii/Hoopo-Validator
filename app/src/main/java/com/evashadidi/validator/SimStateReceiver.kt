@@ -1,3 +1,4 @@
+// SimStateReceiver.kt
 package com.evashadidi.validator
 
 import android.content.BroadcastReceiver
@@ -8,7 +9,7 @@ import android.util.Log
 class SimStateReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        if ("android.intent.action.SIM_STATE_CHANGED" == intent.action) {
+        if (intent.action == "android.intent.action.SIM_STATE_CHANGED") {
             Log.d("ValidatorApp", "SIM state changed")
             NetworkUtils.sendPostRequest("SIM state changed")
         }
