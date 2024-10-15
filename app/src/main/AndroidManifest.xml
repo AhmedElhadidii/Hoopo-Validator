@@ -28,6 +28,10 @@
 
     <uses-feature android:name="android.hardware.usb.host" android:required="false" />
 
+    <queries>
+        <package android:name="im.evas.app" /> <!-- Add the package name of the Hoopo app -->
+    </queries>
+
     <application
         android:name=".ValidatorApp"
         android:allowBackup="true"

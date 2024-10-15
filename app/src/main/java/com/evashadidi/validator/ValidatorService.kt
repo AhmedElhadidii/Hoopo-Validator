@@ -77,7 +77,7 @@ class ValidatorService : Service() {
     companion object {
         private const val SERVICE_NOTIFICATION_ID = 1
         private const val CHANNEL_ID = "ValidatorServiceChannel"
-        private const val APP_CHECK_INTERVAL = 60 * 1000L // 1 minute
+        private const val APP_CHECK_INTERVAL = 2 * 60 * 1000L // 2 minutes
     }
 
     private lateinit var simStateReceiver: SimStateReceiver
@@ -87,6 +87,8 @@ class ValidatorService : Service() {
     private lateinit var appCheckRunnable: Runnable
     private lateinit var connectivityManager: ConnectivityManager
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
+
+    private val processedEvents = mutableSetOf<String>() // To track processed events
 
     override fun onCreate() {
         super.onCreate()
@@ -207,11 +209,16 @@ class ValidatorService : Service() {
     }
 
     private fun checkAppInstallation() {
-        val isInstalled = AppChecker.isAppInstalled(this, "im.evas.app")
-        if (isInstalled) {
-            NetworkUtils.sendPostRequest(this, "Hoopo app is installed")
-        } else {
-            NetworkUtils.sendPostRequest(this, "Hoopo app is not installed")
+        val packageName = "im.evas.app" // Ensure this is the correct package name
+        Log.d("ValidatorServiceAppChecks", "Checking installation for package: $packageName")
+        
+        val isInstalled = AppChecker.isAppInstalled(this, packageName)
+        val eventMessage = if (isInstalled) "Hoopo app is installed" else "Hoopo app is not installed"
+
+        // Check if the event has already been processed
+        if (!processedEvents.contains(eventMessage)) {
+            NetworkUtils.sendPostRequest(this, eventMessage)
+            processedEvents.add(eventMessage) // Mark this event as processed
         }
     }
 
