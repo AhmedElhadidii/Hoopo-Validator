@@ -49,7 +49,7 @@ fun HomeScreen() {
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "HADIDIZ HOOPO Validator",
+                text = "HOOPO Validator",
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,

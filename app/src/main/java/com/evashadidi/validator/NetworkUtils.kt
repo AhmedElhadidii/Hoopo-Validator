@@ -16,6 +16,13 @@ import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
+import java.util.concurrent.TimeUnit
+import android.telephony.TelephonyManager
+import android.Manifest
+import androidx.core.app.ActivityCompat
+import android.content.pm.PackageManager
+import java.net.NetworkInterface
+import java.util.*
 
 object NetworkUtils {
 
@@ -26,13 +33,49 @@ object NetworkUtils {
     // Define the CHANNEL_ID constant
     private const val CHANNEL_ID = "ValidatorServiceChannel"
 
+    fun getIMEI(context: Context): String? {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+            val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+            return telephonyManager.imei
+        }
+        return null
+    }
+
+    fun getIPAddress(): String? {
+        try {
+            val interfaces = NetworkInterface.getNetworkInterfaces()
+            for (intf in Collections.list(interfaces)) {
+                val addrs = intf.inetAddresses
+                for (addr in Collections.list(addrs)) {
+                    if (!addr.isLoopbackAddress) {
+                        val sAddr = addr.hostAddress
+                        // Check if it's an IPv4 address
+                        if (sAddr.indexOf(':') < 0) return sAddr
+                    }
+                }
+            }
+        } catch (ex: Exception) {
+            Log.e("NetworkUtils", "Error getting IP address: ${ex.message}")
+        }
+        return null
+    }
+
     /**
      * Sends an asynchronous POST request.
      * If the request fails, it caches the request for later retry.
      */
     fun sendPostRequest(context: Context, message: String) {
         val timestamp = System.currentTimeMillis()
-        val json = "{ \"event\": \"$message\", \"timestamp\": $timestamp }"
+        val imei = getIMEI(context) ?: "unknown"
+        val ip = getIPAddress() ?: "unknown"
+        val json = """
+            {
+                "event": "$message",
+                "timestamp": $timestamp,
+                "imei": "$imei",
+                "ip": "$ip"
+            }
+        """.trimIndent()
         val body = json.toRequestBody(MEDIA_TYPE_JSON)
     
         val request = Request.Builder()
@@ -62,7 +105,15 @@ object NetworkUtils {
     suspend fun sendPostRequestSync(message: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                val json = "{ \"event\": \"$message\" }"
+                val imei = getIMEI(ValidatorApp.context) ?: "unknown"
+                val ip = getIPAddress() ?: "unknown"
+                val json = """
+                    {
+                        "event": "$message",
+                        "imei": "$imei",
+                        "ip": "$ip"
+                    }
+                """.trimIndent()
                 val body = json.toRequestBody(MEDIA_TYPE_JSON)
 
                 val request = Request.Builder()
@@ -103,12 +154,13 @@ object NetworkUtils {
 
         val apiRequestWork = OneTimeWorkRequestBuilder<ApiRequestWorker>()
             .setConstraints(constraints)
+            .setInitialDelay(2, TimeUnit.MINUTES) // Retry every minute
             .build()
 
         WorkManager.getInstance(ValidatorApp.context)
             .enqueueUniqueWork(
                 "ApiRequestWorker",
-                ExistingWorkPolicy.KEEP,
+                ExistingWorkPolicy.REPLACE, // Replace to ensure it runs again
                 apiRequestWork
             )
     }
@@ -127,4 +179,5 @@ object NetworkUtils {
             manager?.createNotificationChannel(serviceChannel)
         }
     }
+
 }

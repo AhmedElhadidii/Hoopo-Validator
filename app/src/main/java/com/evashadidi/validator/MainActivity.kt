@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
+import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -30,6 +31,8 @@ import com.evashadidi.validator.ui.theme.ValidatorTheme
 class MainActivity : ComponentActivity() {
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
 
+    private val REQUEST_READ_PHONE_STATE = 1001
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("MainActivity", "Notification permission process started ya hadidiz")
@@ -49,6 +52,12 @@ class MainActivity : ComponentActivity() {
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissionLauncher.launch(Manifest.permission.READ_PHONE_STATE)
+            }
+        }
 
         // Start the ValidatorService
         val serviceIntent = Intent(this, ValidatorService::class.java)
@@ -62,6 +71,17 @@ class MainActivity : ComponentActivity() {
             startActivity(intent)
         }
 
+        // Check and request READ_PHONE_STATE permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_PHONE_STATE), REQUEST_READ_PHONE_STATE)
+            } else {
+                // Permission already granted, proceed with accessing IMEI
+                val imei = getIMEI()
+                Log.d("MainActivity", "IMEI: $imei")
+            }
+        }
+
         setContent {
             ValidatorTheme {
                 // A surface container using the 'background' color from the theme
@@ -73,5 +93,27 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_READ_PHONE_STATE) {
+            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                // Permission granted, proceed with accessing IMEI
+                val imei = getIMEI()
+                Log.d("MainActivity", "IMEI: $imei")
+            } else {
+                // Permission denied, handle accordingly
+                Log.d("MainActivity", "READ_PHONE_STATE permission denied")
+            }
+        }
+    }
+
+    private fun getIMEI(): String? {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+            val telephonyManager = getSystemService(TELEPHONY_SERVICE) as TelephonyManager
+            return telephonyManager.imei
+        }
+        return null
     }
 }

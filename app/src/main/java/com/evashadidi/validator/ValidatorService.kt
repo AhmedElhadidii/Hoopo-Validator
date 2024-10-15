@@ -55,10 +55,11 @@ class ValidatorApp : Application() {
             .build()
 
         val apiRequestWork = PeriodicWorkRequestBuilder<ApiRequestWorker>(
-            15, TimeUnit.MINUTES
+            1, TimeUnit.MINUTES
         )
             .setConstraints(constraints)
             .build()
+        Log.d("APICachedRequests", "scheduleApiRequestWorker: trying to resend to the API")
 
         WorkManager.getInstance(this)
             .enqueueUniquePeriodicWork(
