@@ -27,7 +27,7 @@ import java.util.*
 object NetworkUtils {
 
     private val client = OkHttpClient()
-    private const val API_ENDPOINT = "http://172.18.6.138:5000" // Replace with your actual endpoint
+    private const val API_ENDPOINT = "http://172.18.6.138:5000/api" // Replace with your actual endpoint
     private val MEDIA_TYPE_JSON = "application/json; charset=utf-8".toMediaType()
 
     // Define the CHANNEL_ID constant

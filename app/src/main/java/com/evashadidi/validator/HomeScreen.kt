@@ -54,17 +54,17 @@ fun HomeScreen() {
         ) {
             // Logo
             Image(
-                painter = painterResource(id = R.drawable.logo_color),
+                painter = painterResource(id = R.drawable.sialogo),
                 contentDescription = "Validator Logo",
-                modifier = Modifier.size(100.dp)
+                modifier = Modifier.size(150.dp)
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             // Title
             Text(
-                text = "Hoopo Validator",
-                fontSize = 24.sp,
+                text = "SIA Validator",
+                fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
